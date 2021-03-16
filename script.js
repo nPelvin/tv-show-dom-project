@@ -21,10 +21,47 @@ function searchFunction() {
   makeBoxes(filtered);
 }
 
+let buttonEl=document.querySelector("button");
+buttonEl.addEventListener("click", function () {
+  location.reload();
+})
+
+function selectFunction(){
+for (i=0;i<allEpisodes.length;i++)
+{
+  let selectorParent=document.getElementById("episodeSelector");
+  let newOption=document.createElement("option");
+  selectorParent.appendChild(newOption);
+  
+  let episode2d = ("0" + allEpisodes[i].number).slice(-2);
+  let season2d = ("0" + allEpisodes[i].season).slice(-2);
+  newOption.textContent=`S${season2d}E${episode2d} - ${allEpisodes[i].name}`;
+  // set value property of option
+  newOption.value = `S${season2d}E${episode2d}`; 
+}
+}
+
+
+//select functionality
+const selectElement = document.getElementById("episodeSelector");
+selectElement.addEventListener('change', (event) => {
+console.log(`You like ${event.target.value}`);
+let selected = allEpisodes.filter(x=>`S${("0" + x.season).slice(-2)}E${("0" + x.number).slice(-2)}`===event.target.value);
+console.log(selected);
+  //deletes previous search results
+  let row=document.getElementById("row");
+  row.parentNode.removeChild(row);
+  // creates new boxes for current search results
+  makeBoxes(selected);
+});
+//end of select functionality
+
+
 function setup() {
   makePageForEpisodes(allEpisodes);
   giveCredit();
   makeBoxes(filtered);
+  selectFunction();
 }
 
 function makePageForEpisodes(episodeList) {
