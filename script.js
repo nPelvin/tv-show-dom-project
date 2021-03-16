@@ -1,5 +1,7 @@
 //You can edit ALL of the code here
+//brings in list of episodes
 const allEpisodes = getAllEpisodes();
+//sets blank search to default to all Episodes
 let filtered=allEpisodes;
 
 function searchFunction() {
@@ -8,23 +10,17 @@ function searchFunction() {
   input = document.getElementById('myInput');
   //translates to all upper case
   caseNeutral = input.value.toUpperCase();
-  console.log(allEpisodes);
-  filtered=allEpisodes.filter(x=>x.name.toUpperCase().includes(caseNeutral));
-  console.log(filtered);
+  filtered=allEpisodes.filter(x=>x.name.toUpperCase().includes(caseNeutral) || x.summary.toUpperCase().includes(caseNeutral));
   result=document.getElementById("result");
   result.textContent = `Displaying ${filtered.length} / ${allEpisodes.length} episode(s)`;
   let row=document.getElementById("row");
-  console.log(row);
   //deletes previous search results
   row.parentNode.removeChild(row);
   // creates new boxes for current search results
   makeBoxes(filtered);
 }
 
-let buttonEl=document.querySelector("button");
-buttonEl.addEventListener("click", function () {
-  location.reload();
-})
+
 
 function selectFunction(){
 for (i=0;i<allEpisodes.length;i++)
@@ -32,7 +28,6 @@ for (i=0;i<allEpisodes.length;i++)
   let selectorParent=document.getElementById("episodeSelector");
   let newOption=document.createElement("option");
   selectorParent.appendChild(newOption);
-  
   let episode2d = ("0" + allEpisodes[i].number).slice(-2);
   let season2d = ("0" + allEpisodes[i].season).slice(-2);
   newOption.textContent=`S${season2d}E${episode2d} - ${allEpisodes[i].name}`;
@@ -45,21 +40,22 @@ for (i=0;i<allEpisodes.length;i++)
 //select functionality
 const selectElement = document.getElementById("episodeSelector");
 selectElement.addEventListener('change', (event) => {
-console.log(`You like ${event.target.value}`);
-let selected = allEpisodes.filter(x=>`S${("0" + x.season).slice(-2)}E${("0" + x.number).slice(-2)}`===event.target.value);
-console.log(selected);
-  //deletes previous search results
-  let row=document.getElementById("row");
-  row.parentNode.removeChild(row);
-  // creates new boxes for current search results
-  makeBoxes(selected);
+let selected;
+selected = allEpisodes.filter( x => `S${("0" + x.season).slice(-2)}E${("0" + x.number).slice(-2)}` === event.target.value );
+if (event.target.value==="all"){selected=allEpisodes};
+//deletes previous search results
+let row=document.getElementById("row");
+row.parentNode.removeChild(row);
+// creates new boxes for current search results
+result=document.getElementById("result");
+result.textContent = `Displaying ${selected.length} / ${allEpisodes.length} episode(s)`;
+makeBoxes(selected);
 });
 //end of select functionality
 
-
+// functions to call on page load
 function setup() {
   makePageForEpisodes(allEpisodes);
-  giveCredit();
   makeBoxes(filtered);
   selectFunction();
 }
@@ -70,13 +66,12 @@ function makePageForEpisodes(episodeList) {
   result=document.createElement("p");
   rootElem.appendChild(result);
   result.setAttribute("id","result");
-  result.textContent = `Displaying ${episodeList.length} episode(s)`;
+  result.textContent = `Displaying ${episodeList.length} / ${episodeList.length} episode(s)`;
   rootElem.style.border="black solid 10px";
   rootElem.style.backgroundColor="black";
 }
 
 function makeBoxes(filtered) {
-
   // defines root location and creates a new Row of boxes
   const newRow = document.createElement("row");
   const rootElem = document.getElementById("root");
@@ -115,14 +110,6 @@ function makeBoxes(filtered) {
     newContainer.style.textAlign="center";
     newContainer.style.overflow="hidden";
 }
-}
-
-
-function giveCredit() {
-  const rootElem = document.getElementById("root");
-  let newP=document.createElement("p");
-  rootElem.appendChild(newP);
-  newP.innerHTML="Data has (originally) come from TVMaze.com";
 }
 
 window.onload = setup;
