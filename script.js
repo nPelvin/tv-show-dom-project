@@ -1,6 +1,80 @@
 //You can edit ALL of the code here
-//brings in list of episodes
-const allEpisodes = getAllEpisodes();
+
+let allEpisodes, showID;
+let allShows = getAllShows();
+
+function compare(a, b) {
+  // Ignores case
+  const nameA = a.name.toUpperCase();
+  const nameB = b.name.toUpperCase();
+
+  let comparison = 0;
+  if (nameA > nameB) {
+    comparison = 1;
+  } else if (nameA < nameB) {
+    comparison = -1;
+  }
+  return comparison;
+}
+
+allShows.sort(compare);
+showID = allShows[0].id;
+
+let selectedShow = allShows[0];
+
+function selectShows(){
+for (i=0; i<allShows.length; i++)
+{
+  let selectorParent=document.getElementById("showSelector");
+  let newOption=document.createElement("option");
+  selectorParent.appendChild(newOption);
+  newOption.textContent=`${allShows[i].name}`;
+  // set value property of option
+  newOption.value = `${allShows[i].id}`; 
+}
+}
+
+//select functionality
+const selectShowsEl = document.getElementById("showSelector");
+selectShowsEl.addEventListener('change', (event) => {
+
+selectedShow = allShows.filter( x => x.id == event.target.value );
+
+showID = selectedShow[0].id;
+if (event.target.value==="all"){console.log(allShows)};
+//deletes previous search results
+let row=document.getElementById("row");
+row.parentNode.removeChild(row);
+// creates new boxes for current search results
+// result=document.getElementById("result");
+// result.textContent = `Displaying ${selectedShow.length} / ${allShows.length} episode(s)`;
+// makeBoxes(selectedShow);
+fetch(`https://api.tvmaze.com/shows/${showID}/episodes`)
+.then(response => {return response.json()})
+.then((jsonResponse) => {
+  allEpisodes = jsonResponse;
+  console.log(allEpisodes);
+  filtered = allEpisodes;
+  makeBoxes(allEpisodes);
+  
+  selectFunction();
+}
+)
+ .catch((error) => console.log(error));
+
+});
+
+
+fetch(`https://api.tvmaze.com/shows/${showID}/episodes`)
+.then(response => {return response.json()})
+.then((jsonResponse) => {
+  allEpisodes = jsonResponse;
+}
+)
+ .catch((error) => console.log(error));
+
+
+
 //sets blank search to default to all Episodes
 let filtered=allEpisodes;
 
@@ -23,9 +97,16 @@ function searchFunction() {
 
 
 function selectFunction(){
-for (i=0;i<allEpisodes.length;i++)
-{
+  
   let selectorParent=document.getElementById("episodeSelector");
+  selectorParent.innerHTML = '';
+  let firstOption=document.createElement("option");
+  selectorParent.appendChild(firstOption);
+  firstOption.textContent=`View all episodes`;
+  firstOption.value = `all`; 
+
+for (i=0; i<allEpisodes.length; i++)
+{
   let newOption=document.createElement("option");
   selectorParent.appendChild(newOption);
   let episode2d = ("0" + allEpisodes[i].number).slice(-2);
@@ -51,13 +132,15 @@ result=document.getElementById("result");
 result.textContent = `Displaying ${selected.length} / ${allEpisodes.length} episode(s)`;
 makeBoxes(selected);
 });
+
 //end of select functionality
 
 // functions to call on page load
 function setup() {
   makePageForEpisodes(allEpisodes);
-  makeBoxes(filtered);
+  makeBoxes(allEpisodes);
   selectFunction();
+  selectShows();
 }
 
 function makePageForEpisodes(episodeList) {

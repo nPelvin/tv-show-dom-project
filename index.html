@@ -12,19 +12,26 @@
 
   <body>
     <div id="root">
+
+
           <!-- Loads Search -->
       <input type="text" id="myInput" onkeyup="searchFunction()" placeholder="Search for episodes..">
           <!-- Loads Selector -->
+      <label for="shows">Choose a show:</label>
+      <select name="shows" id="showSelector">
+      </select>
+                <!-- Loads Selector -->
       <label for="episodes">Choose an Episode:</label>
       <select name="episodes" id="episodeSelector">
-      <option value="all">View all episodes</option>
       </select>
+
+
     </div>    
     <footer>Data has (originally) come from TVMaze.com</footer>
 
     <!-- Loads a provided function called getAllEpisodes() which returns all episodes -->
     <script src="episodes.js"></script>
-
+    <script src="shows.js"></script>
     <!-- Loads YOUR javascript code -->
     <script src="script.js"></script>
   </body>
