@@ -3,6 +3,7 @@
 let allEpisodes = [];
 let showID;
 let allShows = getAllShows();
+let filteredShows = allShows;
 
 
 function switchToShowView(){
@@ -11,6 +12,7 @@ function switchToShowView(){
   document.getElementById("episodeSelector").classList.add("d-none");
   document.getElementById("episodeText").classList.add("d-none");
   document.getElementById("myInput").classList.add("d-none");
+  document.getElementById("myShowInput").classList.remove("d-none");
 }
 
 
@@ -22,6 +24,7 @@ function switchToEpisodeView(){
   document.getElementById("episodeSelector").classList.remove("d-none");
   document.getElementById("episodeText").classList.remove("d-none");
   document.getElementById("myInput").classList.remove("d-none");
+  document.getElementById("myShowInput").classList.add("d-none");
 }
 
 function compare(a, b) {
@@ -44,8 +47,8 @@ showID = allShows[0].id;
 let selectedShow = allShows[0];
 
 function selectShows(){
- let selectorParent=document.getElementById("showSelector"); //gets show selector from HTML
-    selectorParent.innerHTML = ''; //clears shows from show selector
+ let selectorParent = document.getElementById("showSelector"); //gets show selector from HTML
+  selectorParent.innerHTML = ''; //clears shows from show selector
   // creates the top line of select box for viewing all episodes
   let firstOption=document.createElement("option");
   selectorParent.appendChild(firstOption);
@@ -56,14 +59,14 @@ function selectShows(){
   secondOption.textContent=`View all shows`;
   secondOption.value = `all`;
 
-for ( i=0; i < allShows.length; i++ )
+for ( i=0; i < filteredShows.length; i++ )
 {
  
   let newOption=document.createElement("option");
   selectorParent.appendChild(newOption);
-  newOption.textContent=`${allShows[i].name}`;
+  newOption.textContent=`${filteredShows[i].name}`;
   // set value property of option
-  newOption.value = `${allShows[i].id}`; 
+  newOption.value = `${filteredShows[i].id}`; 
 }
 }
 
@@ -124,6 +127,24 @@ result.textContent = `Displaying ${filtered.length} / ${allEpisodes.length} epis
 
   // creates new boxes for current search results
   makeBoxes(filtered);
+}
+
+
+
+function searchShowsFunction() {
+  var input, caseNeutral;
+  //takes input
+  input = document.getElementById('myShowInput');
+  //translates to all upper case
+  caseNeutral = input.value.toUpperCase();
+  filteredShows=allShows.filter(x=>x.name.toUpperCase().includes(caseNeutral) || x.summary !== null && x.summary.toUpperCase().includes(caseNeutral) || x.genre !== undefined && x.genre.toUpperCase().includes(caseNeutral));
+
+   //deletes previous search results
+  let oldShowRow=document.getElementById("showRow");
+  oldShowRow.parentNode.removeChild(oldShowRow);
+  selectShows();
+//   // creates new boxes for current search results
+  makeShowBoxes(filteredShows);
 }
 
 
@@ -240,6 +261,7 @@ function makeBoxes(array) {
 // show box code
 
 function makeShowBoxes(filtered) {
+
   // defines root location and creates a new Row of boxes
   var newRow = document.createElement("row");
   const rootElem = document.getElementById("root");
