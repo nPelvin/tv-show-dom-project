@@ -1,7 +1,28 @@
 //You can edit ALL of the code here
 
-let allEpisodes, showID;
+let allEpisodes = [];
+let showID;
 let allShows = getAllShows();
+
+
+function switchToShowView(){
+  document.getElementById("row").classList.add("d-none");
+  document.getElementById("result").classList.add("d-none");
+  document.getElementById("episodeSelector").classList.add("d-none");
+  document.getElementById("episodeText").classList.add("d-none");
+  document.getElementById("myInput").classList.add("d-none");
+}
+
+
+
+function switchToEpisodeView(){
+  
+  document.getElementById("showRow").classList.add("d-none");
+  document.getElementById("result").classList.remove("d-none");
+  document.getElementById("episodeSelector").classList.remove("d-none");
+  document.getElementById("episodeText").classList.remove("d-none");
+  document.getElementById("myInput").classList.remove("d-none");
+}
 
 function compare(a, b) {
   // Ignores case
@@ -23,9 +44,21 @@ showID = allShows[0].id;
 let selectedShow = allShows[0];
 
 function selectShows(){
-for (i=0; i<allShows.length; i++)
+ let selectorParent=document.getElementById("showSelector"); //gets show selector from HTML
+    selectorParent.innerHTML = ''; //clears shows from show selector
+  // creates the top line of select box for viewing all episodes
+  let firstOption=document.createElement("option");
+  selectorParent.appendChild(firstOption);
+  firstOption.textContent=`--- Choose a show ---`;
+  firstOption.value = `all`;  
+  let secondOption=document.createElement("option");
+  selectorParent.appendChild(secondOption);
+  secondOption.textContent=`View all shows`;
+  secondOption.value = `all`;
+
+for ( i=0; i < allShows.length; i++ )
 {
-  let selectorParent=document.getElementById("showSelector");
+ 
   let newOption=document.createElement("option");
   selectorParent.appendChild(newOption);
   newOption.textContent=`${allShows[i].name}`;
@@ -37,31 +70,26 @@ for (i=0; i<allShows.length; i++)
 //select functionality
 const selectShowsEl = document.getElementById("showSelector");
 selectShowsEl.addEventListener('change', (event) => {
+  if (event.target.value==="all"){location.reload()};
+  switchToEpisodeView();
+  selectedShow = allShows.filter( x => x.id == event.target.value );
+  showID = selectedShow[0].id;
 
-selectedShow = allShows.filter( x => x.id == event.target.value );
-
-showID = selectedShow[0].id;
-if (event.target.value==="all"){console.log(allShows)};
-//deletes previous search results
-let row=document.getElementById("row");
-row.parentNode.removeChild(row);
-// creates new boxes for current search results
-// result=document.getElementById("result");
-// result.textContent = `Displaying ${selectedShow.length} / ${allShows.length} episode(s)`;
-// makeBoxes(selectedShow);
-fetch(`https://api.tvmaze.com/shows/${showID}/episodes`)
-.then(response => {return response.json()})
-.then((jsonResponse) => {
-  allEpisodes = jsonResponse;
-  console.log(allEpisodes);
-  filtered = allEpisodes;
-  makeBoxes(allEpisodes);
-  
-  selectFunction();
-}
-)
+  //deletes previous search results
+  let row=document.getElementById("row");
+  row.parentNode.removeChild(row);
+  // creates new boxes for current search results
+  fetch(`https://api.tvmaze.com/shows/${showID}/episodes`)
+  .then(response => {return response.json()})
+  .then((jsonResponse) => {
+    allEpisodes = jsonResponse;
+    console.log(allEpisodes);
+    filtered = allEpisodes;
+    makeBoxes(allEpisodes);
+    selectEpisodeFunction();
+  }
+  )
  .catch((error) => console.log(error));
-
 });
 
 
@@ -84,26 +112,33 @@ function searchFunction() {
   input = document.getElementById('myInput');
   //translates to all upper case
   caseNeutral = input.value.toUpperCase();
-  filtered=allEpisodes.filter(x=>x.name.toUpperCase().includes(caseNeutral) || x.summary.toUpperCase().includes(caseNeutral));
-  result=document.getElementById("result");
-  result.textContent = `Displaying ${filtered.length} / ${allEpisodes.length} episode(s)`;
+  filtered=allEpisodes.filter(x=>x.name.toUpperCase().includes(caseNeutral) || x.summary !== null && x.summary.toUpperCase().includes(caseNeutral));
+
+  //#endregion
   let row=document.getElementById("row");
   //deletes previous search results
   row.parentNode.removeChild(row);
+
+result=document.getElementById("result");
+result.textContent = `Displaying ${filtered.length} / ${allEpisodes.length} episode(s)`;
+
   // creates new boxes for current search results
   makeBoxes(filtered);
 }
 
 
 
-function selectFunction(){
+function selectEpisodeFunction(){
   
-  let selectorParent=document.getElementById("episodeSelector");
-  selectorParent.innerHTML = '';
+  let selectorParent=document.getElementById("episodeSelector"); //gets episode selector
+  selectorParent.innerHTML = ''; //clears old episodes from episode selector
+  // creates the top line of select box for viewing all episodes
   let firstOption=document.createElement("option");
   selectorParent.appendChild(firstOption);
   firstOption.textContent=`View all episodes`;
   firstOption.value = `all`; 
+    result=document.getElementById("result");
+  result.textContent = `Displaying ${allEpisodes.length} / ${allEpisodes.length} episode(s)`;
 
 for (i=0; i<allEpisodes.length; i++)
 {
@@ -118,7 +153,7 @@ for (i=0; i<allEpisodes.length; i++)
 }
 
 
-//select functionality
+//select episode functionality
 const selectElement = document.getElementById("episodeSelector");
 selectElement.addEventListener('change', (event) => {
 let selected;
@@ -139,9 +174,12 @@ makeBoxes(selected);
 function setup() {
   makePageForEpisodes(allEpisodes);
   makeBoxes(allEpisodes);
-  selectFunction();
+  selectEpisodeFunction();
   selectShows();
+  switchToShowView();
+  makeShowBoxes(allShows);
 }
+
 
 function makePageForEpisodes(episodeList) {
   const rootElem = document.getElementById("root");
@@ -154,36 +192,39 @@ function makePageForEpisodes(episodeList) {
   rootElem.style.backgroundColor="black";
 }
 
-function makeBoxes(filtered) {
+function makeBoxes(array) {
   // defines root location and creates a new Row of boxes
   const newRow = document.createElement("row");
   const rootElem = document.getElementById("root");
   rootElem.appendChild(newRow);
   newRow.classList.add("row");
   newRow.setAttribute("id", "row");
-  // loop for every object in filtered array
-  for (i=0;i<filtered.length;i++){
+  // loop for every object in array array
+  for ( i=0; i<array.length; i++ ){
   // creates and appends newContainer for each iteration to the root
     const newContainer = document.createElement("div");
     newRow.appendChild(newContainer);
   //create two digit strings for episodes and seasons
-    let episode2d = ("0" + filtered[i].number).slice(-2);
-    let season2d = ("0" + filtered[i].season).slice(-2);
+    let episode2d = ("0" + array[i].number).slice(-2);
+    let season2d = ("0" + array[i].season).slice(-2);
   //creates header for each container comprised of Episode name, and season/episode number
     const header = document.createElement("p");
     newContainer.appendChild(header);
-    header.textContent = `${filtered[i].name} - S${season2d}E${episode2d}`;
+    header.textContent = `${array[i].name} - S${season2d}E${episode2d}`;
     header.style.fontWeight = "700";
   // creates and appends newImage for each iteration to the container
     const newDiv= document.createElement("div");
     const newImg= document.createElement("img");
     newContainer.appendChild(newDiv);
     newDiv.appendChild(newImg);
-    newImg.src=`${filtered[i].image.medium}`;
+    if (array[i].image !== null){
+    newImg.src=`${array[i].image.medium}`};
   // creates and appends newParagraph (summary) for each iteration to the container
     const newP= document.createElement("p");
     newContainer.appendChild(newP);
-    newP.innerHTML = `${filtered[i].summary}`;
+    
+    if (array[i].summary === "" || array[i].summary === null){newP.innerHTML = `No summary available`;}
+    else {newP.innerHTML = `${array[i].summary}`;}
   // create the CSS for newContainer
     newContainer.classList.add("col-xs-12", "col-sm-6", "col-md-4", "col-lg-3");
     newContainer.style.backgroundColor="grey";
@@ -194,5 +235,98 @@ function makeBoxes(filtered) {
     newContainer.style.overflow="hidden";
 }
 }
+
+
+// show box code
+
+function makeShowBoxes(filtered) {
+  // defines root location and creates a new Row of boxes
+  var newRow = document.createElement("row");
+  const rootElem = document.getElementById("root");
+  rootElem.appendChild(newRow);
+  newRow.classList.add("row");
+  newRow.setAttribute("id", "showRow");
+
+  // loop for every object in filtered array
+  for ( i=0; i<filtered.length; i++ ){
+    if (filtered[i].id !== 1127){
+      // creates and appends newContainer for each iteration to the root
+      const newContainer = document.createElement("div");  
+      newContainer.setAttribute("id", filtered[i].id);
+      newRow.appendChild(newContainer);
+      //creates header for each container comprised of Episode name, and season/episode number
+      const header = document.createElement("p");
+      newContainer.appendChild(header);
+      header.textContent = `${filtered[i].name}`;
+      header.style.fontWeight = "700";
+      // creates and appends newImage for each iteration to the container
+      const newDiv= document.createElement("div");
+      const newImg= document.createElement("img");
+      newContainer.appendChild(newDiv);
+      homeShowID=filtered[i].id;
+      newContainer.addEventListener("click", function() {
+        fetch(`https://api.tvmaze.com/shows/${this.id}/episodes`)
+        .then(response => {return response.json()})
+        .then((jsonResponse) => {
+          allEpisodes = jsonResponse;
+          console.log(allEpisodes);
+          let showRow=document.getElementById("showRow");
+          showRow.parentNode.removeChild(row);
+          //hide show list
+          document.getElementById("showRow").classList.add("d-none");
+          filtered = allEpisodes;
+          makeBoxes(allEpisodes);
+          selectEpisodeFunction();
+          switchToEpisodeView();
+          })
+      })
+
+
+
+
+
+
+    newDiv.appendChild(newImg);
+    newImg.src=`${filtered[i].image.medium}`;
+
+
+
+
+
+
+
+
+  // creates the text
+ 
+    const genres= document.createElement("p");
+    newContainer.appendChild(genres);
+    genres.innerHTML = `Genres: ${filtered[i].genres}`;
+  
+    const rating= document.createElement("p");
+    newContainer.appendChild(rating);
+    rating.innerHTML = `Average rating: ${filtered[i].rating.average}`;
+    
+    const summary= document.createElement("p");
+    newContainer.appendChild(summary);
+    if (filtered[i].summary === "" || filtered[i].summary === null){summary.innerHTML = `No summary available`;}
+    else {summary.innerHTML = `Summary: ${filtered[i].summary}`;}
+    
+    const status= document.createElement("p");
+    newContainer.appendChild(status);
+    status.innerHTML = `Status: ${filtered[i].status}`;
+
+  // create the CSS for newContainer
+    newContainer.classList.add("col-xs-12", "col-sm-6", "col-md-4", "col-lg-3");
+    newContainer.style.backgroundColor="grey";
+    newContainer.style.color="white";
+    newContainer.style.border="black solid 10px";
+    newContainer.style.borderRadius="25px";
+    newContainer.style.textAlign="center";
+    newContainer.style.overflow="hidden";
+}
+}
+}
+
+
 
 window.onload = setup;
